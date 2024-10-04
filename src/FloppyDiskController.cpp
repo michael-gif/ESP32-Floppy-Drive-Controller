@@ -43,18 +43,20 @@ void FloppyDrive::reset() {
     driveSelect(false);
     motorEnable(false);
     motorDirection(true);
+    gotoTrack0();
     digitalWrite(_stepPin, LOW);
     digitalWrite(_sidePin, HIGH);
     digitalWrite(_densityPin, LOW);
-    gotoTrack0();
 }
 
 void FloppyDrive::test() {
-    motorDirection(false);
-    step(100);
-    delay(1000);
-    motorDirection(true);
-    step(100);
+    gotoTrack0();
+    delay(500);
+    for (int i = 0; i < 80; i+=4) {
+      gotoTrack(i);
+      delay(125);
+    }
+    gotoTrack0();
 }
 
 void FloppyDrive::step(int steps) {

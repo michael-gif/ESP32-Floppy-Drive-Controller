@@ -22,11 +22,23 @@ class FloppyDrive {
                     int8_t readypin);
         void reset();
         void test();
+        /**
+         * The stepper motor requires a pulse by pulling the _stepPin high for 3ms, then low.
+         * 
+         * Each step change is equivalent to one track change. There are 80 steps/tracks in total for a 3.5" disk.
+         * @param steps 
+         */
         void step(int steps);
         void gotoTrack0();
         void gotoTrack(int track);
         void driveSelect(bool driveSelect);
         void motorEnable(bool motorEnable);
+
+        /**
+         * Use one of the following for direction:
+         * `FLOPPYDRIVE_HEAD_INWARDS` (true)
+         * `FLOPPYDRIVE_HEAD_OUTWARDS` (false)
+         */
         void motorDirection(bool direction);
 };
 

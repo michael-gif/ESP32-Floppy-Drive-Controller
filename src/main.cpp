@@ -24,12 +24,6 @@ void setup() {
 
 void loop() {
   if (analogRead(A4) > 2048) {
-    floppy.gotoTrack0();
-    delay(500);
-    for (int i = 0; i < 80; i+=4) {
-      floppy.gotoTrack(i);
-      delay(125);
-    }
-    floppy.gotoTrack0();
+    floppy.test();
   }
 }
