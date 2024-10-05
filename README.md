@@ -20,6 +20,8 @@ Floppy drive controller code for an ESP32 Feather
 - 34 - Ready/Disk Change
 
 ### Pin info
+- You can change which GPIO pins are used for communication with IDC pins, but be warned that all output pins use digitalWrite(), and all input pin use digitalRead().  
+If you have no choice and need to use an analog pin for input, change the code accordingly to use analogRead() instead of digitalRead().
 - Connecting Density is optional, but is recommended to ensure the drive uses the right density.
 - If direction is LOW, head moves inwards, if HIGH, head moves outwards.
 - Step requires a pulse to move the motor. The pulse is 3ms, from LOW to HIGH.
