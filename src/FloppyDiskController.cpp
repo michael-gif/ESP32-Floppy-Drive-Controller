@@ -1,15 +1,6 @@
 #include <Arduino.h>
 #include <FloppyDiskController.h>
 
-#ifdef BUSIO_USE_FAST_PINIO
-#define read_index_fast() (*indexPort & indexMask)
-#define read_data() (*dataPort & dataMask)
-#define set_debug_led() (*ledPort |= ledMask)
-#define clr_debug_led() (*ledPort &= ~ledMask)
-#define set_write() (*writePort |= writeMask)
-#define clr_write() (*writePort &= ~writeMask)
-#endif
-
 FloppyDrive::FloppyDrive(int8_t densityPin, int8_t indexPin, int8_t driveSelectPin, int8_t motorEnablePin,
                         int8_t directionPin, int8_t stepPin, int8_t wrdataPin, int8_t wrgatePin,
                         int8_t track0Pin, int8_t protectPin, int8_t rddataPin, int8_t sidePin,
@@ -32,6 +23,7 @@ FloppyDrive::FloppyDrive(int8_t densityPin, int8_t indexPin, int8_t driveSelectP
 
 void FloppyDrive::setupPinModes() {
     pinMode(_densityPin, OUTPUT);
+    pinMode(_indexPin, INPUT);
     pinMode(_driveSelectPin, OUTPUT);
     pinMode(_motorEnablePin, OUTPUT);
     pinMode(_directionPin, OUTPUT);
@@ -153,7 +145,12 @@ bool FloppyDrive::readIndex() {
     return digitalRead(_indexPin);
 }
 
-uint32_t FloppyDrive::captureTrack(uint8_t* pulses, size_t max_pulses, int32_t *falling_index_offset, bool store_greaseweazle) {
+bool FloppyDrive::readData() {
+    return analogRead(_rddataPin) > 2048;
+}
+
+uint32_t FloppyDrive::adafruitCaptureTrack(uint8_t* pulses, size_t max_pulses, int32_t *falling_index_offset, bool store_greaseweazle) {
+    //memset((void *)pulses, 0, max_pulses);
     unsigned pulse_count;
     volatile uint8_t *pulses_ptr = pulses;
     volatile uint8_t *pulses_end = pulses + max_pulses;
@@ -166,14 +163,15 @@ uint32_t FloppyDrive::captureTrack(uint8_t* pulses, size_t max_pulses, int32_t *
     bool last_index_state = readIndex();
     uint8_t index_transitions = 0;
 
+    Serial.println(readData());
     // if data line is low, wait till it rises
-    if (!read_data()) {
-    while (!read_data())
+    if (!readData()) {
+    while (!readData())
         ;
     }
     // if data line is high, wait till it drops down
-    if (read_data()) {
-    while (read_data())
+    if (readData()) {
+    while (readData())
         ;
     }
 
@@ -199,15 +197,15 @@ uint32_t FloppyDrive::captureTrack(uint8_t* pulses, size_t max_pulses, int32_t *
     pulse_count = 3;
 
     // while pulse is in the low pulse, count up
-    while (!read_data()) {
+    while (!readData()) {
         pulse_count++;
     }
-    set_debug_led();
+    //set_debug_led();
 
     // while pulse is high, keep counting up
-    while (read_data())
+    while (readData())
         pulse_count++;
-    clr_debug_led();
+    //clr_debug_led();
 
     pulses_ptr[0] = min(255u, pulse_count);
     pulses_ptr++;
@@ -218,4 +216,18 @@ uint32_t FloppyDrive::captureTrack(uint8_t* pulses, size_t max_pulses, int32_t *
     // whew done
     interrupts();
     return pulses_ptr - pulses;
+}
+
+void FloppyDrive::captureTrack(uint8_t* fluxTransitions) {
+    // uint32_t timestamp = micros();
+    // uint32_t trackTime = 0;
+    // indexPulseDetected = false;
+    // while (true) {
+    //     readData();
+    //     if (indexPulseDetected) {
+    //         trackTime = micros() - timestamp;
+    //         break;
+    //     }
+    // }
+    // Serial.println("Read track in " + String(trackTime) + "us");
 }
