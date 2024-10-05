@@ -1,26 +1,23 @@
 #include <Arduino.h>
 #include <FloppyDiskController.h>
 
-FloppyDrive::FloppyDrive(int8_t densitypin, int8_t indexpin,
-                        int8_t driveSelectpin, int8_t motorEnablepin,
-                        int8_t directionpin, int8_t steppin,
-                        int8_t wrdatapin, int8_t wrgatepin,
-                        int8_t track0pin, int8_t protectpin,
-                        int8_t rddatapin, int8_t sidepin,
-                        int8_t readypin) {
-  _densityPin = densitypin;
-  _indexPin = indexpin;
-  _driveSelectPin = driveSelectpin;
-  _motorEnablePin = motorEnablepin;
-  _directionPin = directionpin;
-  _stepPin = steppin;
-  _wrdataPin = wrdatapin;
-  _wrgatePin = wrgatepin;
-  _track0Pin = track0pin;
-  _protectPin = protectpin;
-  _rddataPin = rddatapin;
-  _sidePin = sidepin;
-  _readyPin = readypin;
+FloppyDrive::FloppyDrive(int8_t densityPin, int8_t indexPin, int8_t driveSelectPin, int8_t motorEnablePin,
+                        int8_t directionPin, int8_t stepPin, int8_t wrdataPin, int8_t wrgatePin,
+                        int8_t track0Pin, int8_t protectPin, int8_t rddataPin, int8_t sidePin,
+                        int8_t readyPin) {
+  _densityPin = densityPin;
+  _indexPin = indexPin;
+  _driveSelectPin = driveSelectPin;
+  _motorEnablePin = motorEnablePin;
+  _directionPin = directionPin;
+  _stepPin = stepPin;
+  _wrdataPin = wrdataPin;
+  _wrgatePin = wrgatePin;
+  _track0Pin = track0Pin;
+  _protectPin = protectPin;
+  _rddataPin = rddataPin;
+  _sidePin = sidePin;
+  _readyPin = readyPin;
   setupPinModes();
 }
 
@@ -43,7 +40,6 @@ void FloppyDrive::reset() {
     driveSelect(false);
     motorEnable(false);
     motorDirection(true);
-    gotoTrack0();
     digitalWrite(_stepPin, LOW);
     digitalWrite(_sidePin, HIGH);
     digitalWrite(_densityPin, LOW);
@@ -74,14 +70,19 @@ void FloppyDrive::step(int steps) {
 }
 
 void FloppyDrive::gotoTrack0() {
+    motorDirection(FLOPPYDRIVE_HEAD_INWARDS);
+    step(10); // step 10 inwards to make sure the head isn't outside the track bounds
+
     motorDirection(FLOPPYDRIVE_HEAD_OUTWARDS); // track 0 is the outer most track
     int steps = 85; // 3.5" disks have 80 tracks, but we step out 85 times just to make sure
     while (steps != 0) {
         int isOnTrack0 = digitalRead(_track0Pin);
         if (!isOnTrack0) break; // pin is active low, so false means the head is on track 0
         step(1);
+        steps--;
     }
     currentTrack = 0;
+    Serial.println("Moved head to track 0");
 }
 
 void FloppyDrive::gotoTrack(int trackNum) {
@@ -105,4 +106,40 @@ void FloppyDrive::motorEnable(bool motorEnable) {
 
 void FloppyDrive::motorDirection(bool direction) {
     digitalWrite(_directionPin, direction ? LOW : HIGH);
+}
+
+void FloppyDrive::spinupMotor() {
+  motorEnable(true);
+  delay(500); // wait for motor to spin up
+  
+  Serial.println("Waiting for index pulse...");
+  uint32_t timestamp = micros();
+  bool timedOut = false;
+  uint32_t timeDiff = 0;
+  while (digitalRead(_indexPin)) {
+    timeDiff = micros() - timestamp;
+    if (timeDiff > 1000000) {
+      timedOut = true; // timeout after one second of nothing
+      break;
+    }
+    yield();
+  }
+
+  if (timedOut) {
+    Serial.println("Failed to spin up motor & find index pulse");
+    while (1) yield();
+  }
+  Serial.println("Found pulse after: " + String(timeDiff) + "us");
+}
+
+void FloppyDrive::prepareDrive() {
+    Serial.println("Preparing drive...");
+    driveSelect(true);
+    spinupMotor();
+    gotoTrack0();
+    Serial.println("Drive is ready");
+}
+
+uint32_t FloppyDrive::captureTrack(uint8_t* fluxTransitions, size_t max_pulses, int32_t *falling_index_offset, bool store_greaseweazle) {
+
 }
