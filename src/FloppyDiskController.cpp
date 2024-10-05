@@ -116,7 +116,7 @@ void FloppyDrive::spinupMotor() {
   uint32_t timestamp = micros();
   bool timedOut = false;
   uint32_t timeDiff = 0;
-  while (digitalRead(_indexPin)) {
+  while (readIndex()) {
     timeDiff = micros() - timestamp;
     if (timeDiff > 1000000) {
       timedOut = true; // timeout after one second of nothing
@@ -140,6 +140,73 @@ void FloppyDrive::prepareDrive() {
     Serial.println("Drive is ready");
 }
 
-uint32_t FloppyDrive::captureTrack(uint8_t* fluxTransitions, size_t max_pulses, int32_t *falling_index_offset, bool store_greaseweazle) {
+bool FloppyDrive::readIndex() {
+    return digitalRead(_indexPin);
+}
 
+uint32_t FloppyDrive::captureTrack(uint8_t* pulses, size_t max_pulses, int32_t *falling_index_offset, bool store_greaseweazle) {
+    unsigned pulse_count;
+    volatile uint8_t *pulses_ptr = pulses;
+    volatile uint8_t *pulses_end = pulses + max_pulses;
+
+    // wait for one clean flux pulse so we dont get cut off.
+    // don't worry about losing this pulse, we'll get it on our
+    // overlap run!
+
+    // ok we have a h-to-l transition so...
+    bool last_index_state = readIndex();
+    uint8_t index_transitions = 0;
+
+    // if data line is low, wait till it rises
+    if (!read_data()) {
+    while (!read_data())
+        ;
+    }
+    // if data line is high, wait till it drops down
+    if (read_data()) {
+    while (read_data())
+        ;
+    }
+
+    while (true) {
+    bool index_state = readIndex();
+    // ahh a L to H transition
+    if (!last_index_state && index_state) {
+        index_transitions++;
+        if (index_transitions == 2)
+        break; // and its the second one, so we're done with this track!
+    }
+    // ooh a H to L transition, thats 1 revolution
+    else if (last_index_state && !index_state) {
+        // we'll keep track of when it happened
+        *falling_index_offset = (pulses_ptr - pulses);
+    }
+    last_index_state = index_state;
+
+    // muahaha, now we can read track data!
+    // Don't start counting at zero because we lost some time checking for
+    // index. Empirically, at 180MHz and -O3 on M4, this gives the most 'even'
+    // timings, moving the bins from 41/63/83 to 44/66/89
+    pulse_count = 3;
+
+    // while pulse is in the low pulse, count up
+    while (!read_data()) {
+        pulse_count++;
+    }
+    set_debug_led();
+
+    // while pulse is high, keep counting up
+    while (read_data())
+        pulse_count++;
+    clr_debug_led();
+
+    pulses_ptr[0] = min(255u, pulse_count);
+    pulses_ptr++;
+    if (pulses_ptr == pulses_end) {
+        break;
+    }
+    }
+    // whew done
+    interrupts();
+    return pulses_ptr - pulses;
 }

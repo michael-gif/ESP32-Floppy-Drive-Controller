@@ -33,14 +33,15 @@ class FloppyDrive {
          */
         void motorDirection(bool direction);
         void spinupMotor();
+        bool readIndex();
     public:
-        FloppyDrive(int8_t densitypin, int8_t indexpin,
-                    int8_t driveSelectpin, int8_t motorpin,
-                    int8_t directionpin, int8_t steppin,
-                    int8_t wrdatapin, int8_t wrgatepin,
-                    int8_t track0pin, int8_t protectpin,
-                    int8_t rddatapin, int8_t sidepin,
-                    int8_t readypin);
+        FloppyDrive(int8_t densityPin, int8_t indexPin,
+                    int8_t driveSelectPin, int8_t motorPin,
+                    int8_t directionPin, int8_t stepPin,
+                    int8_t wrdataPin, int8_t wrgatePin,
+                    int8_t track0Pin, int8_t protectPin,
+                    int8_t rddataPin, int8_t sidePin,
+                    int8_t readyPin);
         /**
          * Deselect the drive, turn off the motor and turn off any other pins
          */
