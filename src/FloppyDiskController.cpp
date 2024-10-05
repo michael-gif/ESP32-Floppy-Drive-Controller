@@ -1,6 +1,15 @@
 #include <Arduino.h>
 #include <FloppyDiskController.h>
 
+#ifdef BUSIO_USE_FAST_PINIO
+#define read_index_fast() (*indexPort & indexMask)
+#define read_data() (*dataPort & dataMask)
+#define set_debug_led() (*ledPort |= ledMask)
+#define clr_debug_led() (*ledPort &= ~ledMask)
+#define set_write() (*writePort |= writeMask)
+#define clr_write() (*writePort &= ~writeMask)
+#endif
+
 FloppyDrive::FloppyDrive(int8_t densityPin, int8_t indexPin, int8_t driveSelectPin, int8_t motorEnablePin,
                         int8_t directionPin, int8_t stepPin, int8_t wrdataPin, int8_t wrgatePin,
                         int8_t track0Pin, int8_t protectPin, int8_t rddataPin, int8_t sidePin,
