@@ -23,7 +23,7 @@ FloppyDrive::FloppyDrive(int8_t densityPin, int8_t indexPin, int8_t driveSelectP
 
 void FloppyDrive::setupPinModes() {
     pinMode(_densityPin, OUTPUT);
-    pinMode(_indexPin, INPUT);
+    pinMode(_indexPin, INPUT_PULLUP);
     pinMode(_driveSelectPin, OUTPUT);
     pinMode(_motorEnablePin, OUTPUT);
     pinMode(_directionPin, OUTPUT);
@@ -61,11 +61,11 @@ void FloppyDrive::step(int steps) {
     delayMicroseconds(10);
 
     while (steps != 0) {
-        driveSelect(true);
+        //driveSelect(true);
         digitalWrite(_stepPin, HIGH);
         delayMicroseconds(3000);
         digitalWrite(_stepPin, LOW);
-        driveSelect(false);
+        //driveSelect(false);
         steps--;
     }
 }
@@ -130,7 +130,7 @@ void FloppyDrive::spinupMotor() {
     Serial.println("Failed to spin up motor & find index pulse");
     while (1) yield();
   }
-  Serial.println("Found pulse after: " + String(timeDiff) + "us");
+  Serial.println("Detected pulse after: " + String(timeDiff) + "us");
 }
 
 void FloppyDrive::prepareDrive() {
@@ -176,42 +176,42 @@ uint32_t FloppyDrive::adafruitCaptureTrack(uint8_t* pulses, size_t max_pulses, i
     }
 
     while (true) {
-    bool index_state = readIndex();
-    // ahh a L to H transition
-    if (!last_index_state && index_state) {
-        index_transitions++;
-        if (index_transitions == 2)
-        break; // and its the second one, so we're done with this track!
-    }
-    // ooh a H to L transition, thats 1 revolution
-    else if (last_index_state && !index_state) {
-        // we'll keep track of when it happened
-        *falling_index_offset = (pulses_ptr - pulses);
-    }
-    last_index_state = index_state;
+        bool index_state = readIndex();
+        // ahh a L to H transition
+        if (!last_index_state && index_state) {
+            index_transitions++;
+            if (index_transitions == 2)
+            break; // and its the second one, so we're done with this track!
+        }
+        // ooh a H to L transition, thats 1 revolution
+        else if (last_index_state && !index_state) {
+            // we'll keep track of when it happened
+            *falling_index_offset = (pulses_ptr - pulses);
+        }
+        last_index_state = index_state;
 
-    // muahaha, now we can read track data!
-    // Don't start counting at zero because we lost some time checking for
-    // index. Empirically, at 180MHz and -O3 on M4, this gives the most 'even'
-    // timings, moving the bins from 41/63/83 to 44/66/89
-    pulse_count = 3;
+        // muahaha, now we can read track data!
+        // Don't start counting at zero because we lost some time checking for
+        // index. Empirically, at 180MHz and -O3 on M4, this gives the most 'even'
+        // timings, moving the bins from 41/63/83 to 44/66/89
+        pulse_count = 3;
 
-    // while pulse is in the low pulse, count up
-    while (!readData()) {
-        pulse_count++;
-    }
-    //set_debug_led();
+        // while pulse is in the low pulse, count up
+        while (!readData()) {
+            pulse_count++;
+        }
+        //set_debug_led();
 
-    // while pulse is high, keep counting up
-    while (readData())
-        pulse_count++;
-    //clr_debug_led();
+        // while pulse is high, keep counting up
+        while (readData())
+            pulse_count++;
+        //clr_debug_led();
 
-    pulses_ptr[0] = min(255u, pulse_count);
-    pulses_ptr++;
-    if (pulses_ptr == pulses_end) {
-        break;
-    }
+        pulses_ptr[0] = min(255u, pulse_count);
+        pulses_ptr++;
+        if (pulses_ptr == pulses_end) {
+            break;
+        }
     }
     // whew done
     interrupts();
@@ -219,15 +219,13 @@ uint32_t FloppyDrive::adafruitCaptureTrack(uint8_t* pulses, size_t max_pulses, i
 }
 
 void FloppyDrive::captureTrack(uint8_t* fluxTransitions) {
-    // uint32_t timestamp = micros();
-    // uint32_t trackTime = 0;
-    // indexPulseDetected = false;
-    // while (true) {
-    //     readData();
-    //     if (indexPulseDetected) {
-    //         trackTime = micros() - timestamp;
-    //         break;
-    //     }
-    // }
-    // Serial.println("Read track in " + String(trackTime) + "us");
+    uint32_t start = micros();
+    while (true) {
+        while (readIndex()); // wait for falling edge (start of pulse)
+        uint32_t current = micros();
+        uint32_t timeDiff = current - start;
+        start = current;
+        Serial.println("Detected pulse after: " + String(timeDiff) + "us");
+        while (!readIndex()); // wait for rising edge (end of pulse)
+    }
 }

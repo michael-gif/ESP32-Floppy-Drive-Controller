@@ -24,17 +24,16 @@ void setup() {
   floppy.reset();
   pinMode(A4, INPUT);
   attachInterrupt(READY_PIN, []() {Serial.println("Disk ready");}, FALLING);
-  //attachInterrupt(digitalPinToInterrupt(TRK0_PIN), []() {Serial.println("TRACK 0");}, FALLING);
+  //attachInterrupt(INDEX_PIN, []() {Serial.println("Index pulse");}, FALLING);
 }
 
 void loop() {
   if (analogRead(A4) > 2048) {
-    //floppy.test();
     floppy.prepareDrive();
-    //delay(1000);
+    delay(1000);
     //int32_t index_pulse_offset;
     //uint32_t capturedFluxTransitions = floppy.captureTrack(flux_transitions, sizeof(flux_transitions), &index_pulse_offset, true);
     //Serial.println("Captured " + String(capturedFluxTransitions) + " flux transitions");
-    //floppy.captureTrack(flux_transitions);
+    floppy.captureTrack(flux_transitions);
   }
 }
