@@ -2,6 +2,7 @@
 #define FLOPPY_DISK_CONTROLLER_H
 
 #include <Arduino.h>
+#include <Adafruit_SPIDevice.h>
 
 #define FLOPPYDRIVE_HEAD_INWARDS true
 #define FLOPPYDRIVE_HEAD_OUTWARDS false
@@ -36,6 +37,12 @@ class FloppyDrive {
         void spinupMotor();
         bool readIndex();
         bool readData();
+        #ifdef BUSIO_USE_FAST_PINIO
+        BusIO_PortReg *indexPort;
+        BusIO_PortMask indexMask;
+        BusIO_PortReg *dataPort;
+        BusIO_PortMask dataMask;
+        #endif
     public:
         FloppyDrive(int8_t densityPin, int8_t indexPin,
                     int8_t driveSelectPin, int8_t motorPin,

@@ -1,6 +1,11 @@
 #include <Arduino.h>
 #include <FloppyDiskController.h>
 
+#ifdef BUSIO_USE_FAST_PINIO
+#define readIndexFast() (*indexPort & indexMask)
+#define readDataFast() (*dataPort & dataMask)
+#endif
+
 FloppyDrive::FloppyDrive(int8_t densityPin, int8_t indexPin, int8_t driveSelectPin, int8_t motorEnablePin,
                         int8_t directionPin, int8_t stepPin, int8_t wrdataPin, int8_t wrgatePin,
                         int8_t track0Pin, int8_t protectPin, int8_t rddataPin, int8_t sidePin,
@@ -35,6 +40,13 @@ void FloppyDrive::setupPinModes() {
     pinMode(_rddataPin, INPUT_PULLUP);
     pinMode(_sidePin, OUTPUT);
     pinMode(_readyPin, INPUT_PULLUP);
+
+    #ifdef BUSIO_USE_FAST_PINIO
+    indexPort = (BusIO_PortReg *)portInputRegister(digitalPinToPort(_indexPin));
+    indexMask = digitalPinToBitMask(_indexPin);
+    dataPort = (BusIO_PortReg *)portInputRegister(digitalPinToPort(_rddataPin));
+    dataMask = digitalPinToBitMask(_rddataPin);
+    #endif
 }
 
 void FloppyDrive::reset() {
@@ -75,8 +87,8 @@ void FloppyDrive::gotoTrack0() {
     motorDirection(FLOPPYDRIVE_HEAD_OUTWARDS); // track 0 is the outer most track
     int steps = 85; // 3.5" disks have 80 tracks, but we step out 85 times just to make sure
     while (steps != 0) {
-        int isOnTrack0 = analogRead(_track0Pin);
-        if (isOnTrack0 > 2048) break; // pin is active low, so false means the head is on track 0
+        int isOnTrack0 = digitalRead(_track0Pin);
+        if (!isOnTrack0) break; // pin is active low, so false means the head is on track 0
         step(1);
         steps--;
     }
@@ -148,26 +160,22 @@ bool FloppyDrive::readData() {
 }
 
 void FloppyDrive::captureTrack(uint8_t* fluxTransitions) {
-    while (readIndex()); // wait for falling edge (start of index pulse)
-    uint32_t start = millis();
-    uint32_t readTime = 0;
-    Serial.println("Started reading");
+    while (readIndexFast()); // wait for falling edge (start of index pulse)
+    while (!readIndexFast()); // wait for rising edge (end of index pulse)
 
     int pulseCount = 0;
+    uint32_t pulseStart = 0;
     while (true) {
         // read data here
-        uint32_t pulseStart = micros();
-        while (readData());
-        uint32_t pulseDuration = micros() - pulseStart;
+        while (readDataFast()); // wait for falling edge (start of data pulse)
+        uint32_t current = micros();
+        uint32_t pulseDuration = current - pulseStart;
+        pulseStart = current;
         if (pulseCount < MAX_FLUX_PULSE_PER_TRACK)
             fluxTransitions[pulseCount] = pulseDuration;
         pulseCount++;
-
-        // wait at least 10ms for the index pulse to end
-        readTime = millis() - start;
-        if (readTime > 10) {
-            if (!readIndex()) break; // falling edge of next pulse, meaning end of track
-        }
+        if (!readIndexFast()) break; // falling edge of next index pulse, meaning end of track
+        while (!readDataFast()); // wait for rising edge (end of data pulse)
     }
-    Serial.println("Finished reading: " + String(readTime) + "ms, Transitions: " + String(pulseCount));
+    Serial.println("Read track: Transitions: " + String(pulseCount));
 }
