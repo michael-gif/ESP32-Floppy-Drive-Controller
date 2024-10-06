@@ -25,7 +25,7 @@ If you have no choice and need to use an analog pin for input, change the code a
 - Connecting Density is optional, but is recommended to ensure the drive uses the right density.
 - If direction is LOW, head moves inwards, if HIGH, head moves outwards.
 - Step requires a pulse to move the motor. The pulse is 3ms, from LOW to HIGH.
-- Track 0 will output LOW if the head is on track 0, otherwise HIGH. You can use an analog input for this.
+- Track 0 will output LOW if the head is on track 0, otherwise HIGH. This pin MUST use a digital pin.
 - Index pin MUST use a digital pin. Index outputs pulses which the ADC cannot detect.
 - Read Data pin MUST use a digital pin. It outputs pulses, so you cannot use an analog input for this.
 - More info about how the pins works can be found in [this pdf](https://github.com/michael-gif/ESP32-Floppy-Drive-Controller/blob/main/resources/SAMSUNG-SFD321B-070103.pdf)  
