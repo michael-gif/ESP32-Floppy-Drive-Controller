@@ -9,9 +9,9 @@
 #define STEP_PIN 27          // IDC 20 - OUTPUT
 #define WRDATA_PIN 12        // IDC 22 - OUTPUT
 #define WRGATE_PIN 13        // IDC 24 - OUTPUT
-#define TRK0_PIN A1          // IDC 26 - INPUT
+#define TRK0_PIN A2          // IDC 26 - INPUT
 #define PROT_PIN A3          // IDC 28 - INPUT
-#define READ_PIN A2          // IDC 30 - INPUT
+#define READ_PIN A1          // IDC 30 - INPUT
 #define SIDE_PIN A5          // IDC 32 - OUTPUT
 #define READY_PIN A0         // IDC 34 - INPUT
 
@@ -30,9 +30,11 @@ void loop() {
   if (analogRead(A4) > 2048) {
     floppy.prepareDrive();
     delay(1000);
-    //int32_t index_pulse_offset;
-    //uint32_t capturedFluxTransitions = floppy.captureTrack(flux_transitions, sizeof(flux_transitions), &index_pulse_offset, true);
-    //Serial.println("Captured " + String(capturedFluxTransitions) + " flux transitions");
     floppy.captureTrack(flux_transitions);
+    floppy.reset();
+    for (int i = 0; i < 100; i++) {
+      Serial.print(String(flux_transitions[i]) + " ");
+    }
+    Serial.println();
   }
 }
