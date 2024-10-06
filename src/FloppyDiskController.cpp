@@ -61,11 +61,9 @@ void FloppyDrive::step(int steps) {
     delayMicroseconds(10);
 
     while (steps != 0) {
-        //driveSelect(true);
         digitalWrite(_stepPin, HIGH);
         delayMicroseconds(3000);
         digitalWrite(_stepPin, LOW);
-        //driveSelect(false);
         steps--;
     }
 }

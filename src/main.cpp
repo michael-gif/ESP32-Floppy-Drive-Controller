@@ -24,7 +24,6 @@ void setup() {
   floppy.reset();
   pinMode(A4, INPUT);
   attachInterrupt(READY_PIN, []() {Serial.println("Disk ready");}, FALLING);
-  //attachInterrupt(INDEX_PIN, []() {Serial.println("Index pulse");}, FALLING);
 }
 
 void loop() {
