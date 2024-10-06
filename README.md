@@ -22,11 +22,11 @@ Floppy drive controller code for an ESP32 Feather
 ### Pin info
 - You can change which GPIO pins are used for communication with IDC pins, but be warned that all output pins use digitalWrite(), and most input pins use digitalRead().  
 If you have no choice and need to use an analog pin for input, change the code accordingly to use analogRead() instead of digitalRead().
-- Connecting Density is optional, but is recommended to ensure the drive uses the right density.
-- If direction is LOW, head moves inwards, if HIGH, head moves outwards.
-- Step requires a pulse to move the motor. The pulse is 3ms, from LOW to HIGH.
-- Track 0 will output LOW if the head is on track 0, otherwise HIGH. This pin MUST use a digital pin.
-- Index pin MUST use a digital pin. Index outputs pulses which the ADC cannot detect.
-- Read Data pin MUST use a digital pin. It outputs pulses, so you cannot use an analog input for this.
+- Connecting `Density` is optional, but is recommended to ensure the drive uses the right density.
+- If `Direction` is LOW, head moves inwards, if HIGH, head moves outwards.
+- `Step` requires a pulse to move the motor. The pulse is 3ms, from LOW to HIGH.
+- `Track 0` will output LOW if the head is on track 0, otherwise HIGH. This pin MUST use a digital pin.
+- `Index` MUST use a digital pin. Index outputs pulses which the ADC cannot detect.
+- `Read Data` pin MUST use a digital pin. It outputs pulses, so you cannot use an analog input for this.
 - More info about how the pins works can be found in [this pdf](https://github.com/michael-gif/ESP32-Floppy-Drive-Controller/blob/main/resources/SAMSUNG-SFD321B-070103.pdf)  
 The pdf may not be for you're specific drive, but it is good enough.
