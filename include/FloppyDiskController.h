@@ -60,7 +60,17 @@ class FloppyDrive {
          * Select the drive, spinup the motor and move the head to track 0
          */
         void prepareDrive();
+        /**
+         * Capture one track worth of data by counting clock cycles during each pulse
+         * @param fluxTransitions 
+         * @return int 
+         */
         int captureTrack(uint8_t* fluxTransitions);
+        /**
+         * Decode mfm encoded pulses into binary
+         * @param fluxTransitions 
+         * @param pulses 
+         */
         void decode_mfm(uint8_t* fluxTransitions, int pulses);
 };
 

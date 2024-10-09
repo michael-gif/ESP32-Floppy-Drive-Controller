@@ -32,18 +32,6 @@ void loop() {
     int pulses = floppy.captureTrack(flux_transitions);
     floppy.reset();
     floppy.decode_mfm(flux_transitions, pulses);
-
-    // int cyclesPerMicrosecond = 240;
-    // for (int i = 0; i < 100; i++) {
-    //   int count = flux_transitions[i];
-    //   if (count <= 25) {
-    //     Serial.print(String(2) + " ");
-    //   } else if (count <= 60) {
-    //     Serial.print(String(3) + " ");
-    //   } else {
-    //     Serial.print(String(4) + " ");
-    //   }
-    // }
     Serial.println();
   }
 }
