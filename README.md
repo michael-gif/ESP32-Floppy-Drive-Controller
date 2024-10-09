@@ -2,7 +2,7 @@
 Floppy drive controller code for an ESP32 Feather. Can be adapted to other boards.  
 Inspired by [this adafruit project](https://github.com/adafruit/Adafruit_Floppy/tree/main)
 
-# IDC Connector pinout
+# Floppy cable IDC connector pinout
 ![pinout diagram](https://github.com/michael-gif/ESP32-Floppy-Drive-Controller/blob/main/resources/idc_connector_pinout.png)
 
 # General info
@@ -15,14 +15,12 @@ Inspired by [this adafruit project](https://github.com/adafruit/Adafruit_Floppy/
 - 22 - Write Data
 - 24 - Write Enable
 - 26 - Track 0
-- 28 - Write Protect
 - 30 - Read Data
 - 32 - Side Select
-- 34 - Ready/Disk Change
 
 ### Pin info
-- You can change which GPIO pins are used for communication with IDC pins, but be warned that all output pins use digitalWrite(), and most input pins use digitalRead().  
-If you have no choice and need to use an analog pin for input, change the code accordingly to use analogRead() instead of digitalRead().
+- You can change which GPIO pins are used for communication with IDC pins, but be warned that all output pins use `digitalWrite()`, and most input pins use `digitalRead()`.  
+If you have no choice and need to use an analog pin for input, change the code accordingly to use `analogRead()` instead of `digitalRead()`.
 - Connecting `Density` is optional, but is recommended to ensure the drive uses the right density.
 - If `Direction` is LOW, head moves inwards, if HIGH, head moves outwards.
 - `Step` requires a pulse to move the motor. The pulse is 3ms, from LOW to HIGH. Every step change is equivalent to a track change. So stepping 10 times will step 10 tracks.
