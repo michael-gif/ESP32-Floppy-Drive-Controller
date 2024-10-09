@@ -7,7 +7,7 @@ Inspired by [this adafruit project](https://github.com/adafruit/Adafruit_Floppy/
 
 # General info
 ### Pins that must be connected
-- 8 - Index
+- 08 - Index
 - 12 - Drive Select B
 - 16 - Motor Enable B
 - 18 - Direction
