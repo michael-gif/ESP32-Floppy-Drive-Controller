@@ -34,7 +34,7 @@ The pdf may not be for you're specific drive, but it is good enough.
 
 # MFM Encoding/Decoding
 
-[Wikipedia page](https://en.wikipedia.org/wiki/Modified_frequency_modulation)
+[Wikipedia page](https://en.wikipedia.org/wiki/Modified_frequency_modulation#MFM_coding)
 
 ### Encoding
 Use the following rules:
