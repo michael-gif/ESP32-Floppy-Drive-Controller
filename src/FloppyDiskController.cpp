@@ -168,32 +168,7 @@ int FloppyDrive::captureTrack(uint8_t* fluxTransitions) {
     while (readIndexFast()); // wait for falling edge (start of index pulse)
     while (!readIndexFast()); // wait for rising edge (end of index pulse)
     while (!readDataFast()); // wait for rising edge (high of data pulse)
-
-    //int prevData = 0; // start with data line high
-    //uint8_t transitions = 0;
-    uint8_t* fluxEnd = fluxTransitions + MAX_FLUX_PULSE_PER_TRACK;
     while (true) {
-        // read data here
-        
-        // fluxTransitions[0]++; // add clock cycle
-        // int dataValue = readDataFast() == 0; // 0 means high, 1 means low
-        // transitions += dataValue != prevData; // change in data value means transition
-        // prevData = dataValue;
-        // uint8_t reachedLimit = (pulseCount < MAX_FLUX_PULSE_PER_TRACK) * 255;
-        // uint8_t pulseDetected = (transitions > 0 && transitions % 3 == 0) & reachedLimit; // two transitions means a full data pulse
-        // fluxTransitions += pulseDetected;
-        // pulseCount += pulseDetected;
-        // // if we hit 3 transitions, we are at the start of the next data pulse, so reset. Otherwise keep the current transition count
-        // transitions &= (transitions % 3 != 0) * 255;
-
-        // while (readDataFast()); // wait for falling edge (start of data pulse)
-        // uint32_t current = micros();
-        // uint32_t pulseDuration = current - pulseStart;
-        // pulseStart = current;
-        // fluxTransitions[pulseCount] = pulseDuration;
-        // pulseCount++;
-        // delayMicroseconds(1); // wait for data pulse to end
-
         int counter = 0;
         while (!readDataFast()) counter++;
         while (readDataFast()) counter++;
