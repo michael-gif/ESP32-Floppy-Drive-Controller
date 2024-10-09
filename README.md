@@ -23,7 +23,7 @@ Inspired by [this adafruit project](https://github.com/adafruit/Adafruit_Floppy/
 ### Changing GPIO pins
 - You can change which GPIO pins are used for communication with IDC pins, but be warned that all output pins use `digitalWrite()`, and most input pins use `digitalRead()`.
 - If you have no choice and need to use an analog pin for input, change the code accordingly to use `analogRead()` instead of `digitalRead()`.
-- To change GPIO pins, change the defines in the code:
+- To change GPIO pins, change the defines in `main.cpp`:
 ```C++
 #define DENSITY_PIN 14       // IDC 2  - ESP32 OUTPUT, IDC INPUT
 #define INDEX_PIN 21         // IDC 8  - ESP32 INPUT, IDC OUTPUT
