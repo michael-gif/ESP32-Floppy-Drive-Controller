@@ -1,5 +1,6 @@
 # ESP32-Floppy-Drive-Controller
-Floppy drive controller code for an ESP32 Feather
+Floppy drive controller code for an ESP32 Feather  
+Inspired by [this adafruit project](https://github.com/adafruit/Adafruit_Floppy/tree/main)
 
 # IDC Connector pinout
 ![pinout diagram](https://github.com/michael-gif/ESP32-Floppy-Drive-Controller/blob/main/resources/idc_connector_pinout.png)

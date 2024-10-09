@@ -56,6 +56,8 @@ void FloppyDrive::reset() {
     digitalWrite(_stepPin, LOW);
     digitalWrite(_sidePin, HIGH);
     digitalWrite(_densityPin, LOW);
+    digitalWrite(_wrgatePin, HIGH);
+    digitalWrite(_wrdataPin, HIGH);
 }
 
 void FloppyDrive::test() {
@@ -121,7 +123,7 @@ void FloppyDrive::motorDirection(bool direction) {
 
 void FloppyDrive::spinupMotor() {
   motorEnable(true);
-  delay(500); // wait for motor to spin up
+  delay(1000); // wait for motor to spin up
   
   Serial.println("Waiting for index pulse...");
   uint32_t timestamp = micros();
@@ -159,23 +161,62 @@ bool FloppyDrive::readData() {
     return digitalRead(_rddataPin);
 }
 
-void FloppyDrive::captureTrack(uint8_t* fluxTransitions) {
+int FloppyDrive::captureTrack(uint8_t* fluxTransitions) {
+    memset(fluxTransitions, 0, MAX_FLUX_PULSE_PER_TRACK);
+    int pulseCount = 0;
+    int counter = 0;
     while (readIndexFast()); // wait for falling edge (start of index pulse)
     while (!readIndexFast()); // wait for rising edge (end of index pulse)
+    while (!readDataFast()); // wait for rising edge (high of data pulse)
 
-    int pulseCount = 0;
-    uint32_t pulseStart = 0;
+    //int prevData = 0; // start with data line high
+    //uint8_t transitions = 0;
+    uint8_t* fluxEnd = fluxTransitions + MAX_FLUX_PULSE_PER_TRACK;
     while (true) {
         // read data here
-        while (readDataFast()); // wait for falling edge (start of data pulse)
-        uint32_t current = micros();
-        uint32_t pulseDuration = current - pulseStart;
-        pulseStart = current;
-        if (pulseCount < MAX_FLUX_PULSE_PER_TRACK)
-            fluxTransitions[pulseCount] = pulseDuration;
+        
+        // fluxTransitions[0]++; // add clock cycle
+        // int dataValue = readDataFast() == 0; // 0 means high, 1 means low
+        // transitions += dataValue != prevData; // change in data value means transition
+        // prevData = dataValue;
+        // uint8_t reachedLimit = (pulseCount < MAX_FLUX_PULSE_PER_TRACK) * 255;
+        // uint8_t pulseDetected = (transitions > 0 && transitions % 3 == 0) & reachedLimit; // two transitions means a full data pulse
+        // fluxTransitions += pulseDetected;
+        // pulseCount += pulseDetected;
+        // // if we hit 3 transitions, we are at the start of the next data pulse, so reset. Otherwise keep the current transition count
+        // transitions &= (transitions % 3 != 0) * 255;
+
+        // while (readDataFast()); // wait for falling edge (start of data pulse)
+        // uint32_t current = micros();
+        // uint32_t pulseDuration = current - pulseStart;
+        // pulseStart = current;
+        // fluxTransitions[pulseCount] = pulseDuration;
+        // pulseCount++;
+        // delayMicroseconds(1); // wait for data pulse to end
+
+        int counter = 0;
+        while (!readDataFast()) counter++;
+        while (readDataFast()) counter++;
+        fluxTransitions[0] = counter;
+        fluxTransitions++;
         pulseCount++;
         if (!readIndexFast()) break; // falling edge of next index pulse, meaning end of track
-        while (!readDataFast()); // wait for rising edge (end of data pulse)
     }
     Serial.println("Read track: Transitions: " + String(pulseCount));
+    return pulseCount;
+}
+
+void FloppyDrive::decode_mfm(uint8_t* fluxTransitions, int pulses) {
+    std::string temp;
+    for (int i = 0; i < pulses; i++) {
+        uint8_t pulse = fluxTransitions[i];
+        if (pulse <= 25) { // short pulse 10
+            Serial.print("10");
+        } else if (pulse <= 60) { // medium pulse 100
+            Serial.print("100");
+        } else { // long pulse 1000
+            Serial.print("1000");
+        }
+    }
+    Serial.println();
 }

@@ -29,11 +29,21 @@ void loop() {
   if (analogRead(A4) > 2048) {
     floppy.prepareDrive();
     delay(1000);
-    floppy.captureTrack(flux_transitions);
+    int pulses = floppy.captureTrack(flux_transitions);
     floppy.reset();
-    for (int i = 0; i < 100; i++) {
-      Serial.print(String(flux_transitions[i]) + " ");
-    }
+    floppy.decode_mfm(flux_transitions, pulses);
+
+    // int cyclesPerMicrosecond = 240;
+    // for (int i = 0; i < 100; i++) {
+    //   int count = flux_transitions[i];
+    //   if (count <= 25) {
+    //     Serial.print(String(2) + " ");
+    //   } else if (count <= 60) {
+    //     Serial.print(String(3) + " ");
+    //   } else {
+    //     Serial.print(String(4) + " ");
+    //   }
+    // }
     Serial.println();
   }
 }

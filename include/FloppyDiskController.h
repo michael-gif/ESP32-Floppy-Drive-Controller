@@ -6,10 +6,7 @@
 
 #define FLOPPYDRIVE_HEAD_INWARDS true
 #define FLOPPYDRIVE_HEAD_OUTWARDS false
-// #define MAX_FLUX_PULSE_PER_TRACK                                               \
-//   (uint32_t)(500000UL / 5 *                                                    \
-//              1.5) // 500khz / 5 hz per track rotation, 1.5 rotations
-#define MAX_FLUX_PULSE_PER_TRACK 36864
+#define MAX_FLUX_PULSE_PER_TRACK 83334
 
 class FloppyDrive {
     private:
@@ -63,8 +60,8 @@ class FloppyDrive {
          * Select the drive, spinup the motor and move the head to track 0
          */
         void prepareDrive();
-        uint32_t adafruitCaptureTrack(uint8_t* fluxTransitions, size_t max_pulses, int32_t *falling_index_offset, bool store_greaseweazle);
-        void captureTrack(uint8_t* fluxTransitions);
+        int captureTrack(uint8_t* fluxTransitions);
+        void decode_mfm(uint8_t* fluxTransitions, int pulses);
 };
 
 #endif
